@@ -8,22 +8,23 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func createVenue() model.VenueDynamic {
-	return model.VenueDynamic{
-		BasePrice: 100,
-		OrderMin:  200,
-		Venue: model.Venue{
-			Coords: model.Coordinates{
-				Latitude:  60.0,
-				Longitude: 25.0,
-			},
+func createVenue() model.Venue {
+	return model.Venue{
+		Location: &model.Location{
+			Coordinate: []float64{60.0, 25.0},
 		},
-		DistanceRanges: []model.DistanceRange{
-			{
-				Min: 0,
-				Max: 1000,
-				A:   10,
-				B:   1,
+		DeliverySpecs: &model.DeliverySpecs{
+			OrderMin: 200,
+			DeliveryPricing: &model.DeliveryPricing{
+				BasePrice: 100,
+				DistanceRanges: []model.DistanceRange{
+					{
+						Min: 0,
+						Max: 1000,
+						A:   10,
+						B:   1,
+					},
+				},
 			},
 		},
 	}
@@ -32,9 +33,8 @@ func createVenue() model.VenueDynamic {
 func TestTotalFee_Success(t *testing.T) {
 	venue := createVenue()
 
-	userCoords := model.Coordinates{
-		Latitude:  60.0,
-		Longitude: 25.0,
+	userCoords := model.Location{
+		Coordinate: []float64{60.0, 25.0},
 	}
 
 	tests := []struct {
@@ -62,7 +62,7 @@ func TestTotalFee_Success(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			total, err := TotalFee(tt.cartValue, userCoords, venue)
+			total, err := TotalFee(tt.cartValue, &userCoords, &venue)
 			require.NoError(t, err)
 			require.Equal(t, tt.expected, total)
 		})
@@ -71,11 +71,10 @@ func TestTotalFee_Success(t *testing.T) {
 
 func TestTotalFee_OutOfRange(t *testing.T) {
 	venue := createVenue()
-	userCoords := model.Coordinates{
-		Latitude:  60.0,
-		Longitude: 25.0,
+	userCoords := model.Location{
+		Coordinate: []float64{60.0, 25.0},
 	}
 
-	_, err := TotalFee(300, userCoords, venue)
+	_, err := TotalFee(300, &userCoords, &venue)
 	require.Error(t, err)
 }
