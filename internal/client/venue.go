@@ -9,20 +9,39 @@ import (
 
 const _apiPrefix = "https://consumer-api.development.dev.woltapi.com/home-assignment-api/v1/venues/"
 
+type result struct {
+	venue model.VenueResponse
+	err   error
+}
+
 func FetchApi(venue string) (model.Venue, error) {
-	static, err := fetchStatic(venue)
-	if err != nil {
-		return model.Venue{}, err
+	staticChan := make(chan result)
+	dynamicChan := make(chan result)
+
+	go func() {
+		res, err := fetchStatic(venue)
+		staticChan <- result{res, err}
+	}()
+
+	go func() {
+		res, err := fetchDynamic(venue)
+		dynamicChan <- result{res, err}
+	}()
+
+	staticResult := <-staticChan
+	dynamicResult := <-dynamicChan
+
+	if staticResult.err != nil {
+		return model.Venue{}, fmt.Errorf("static endpoint fetch failed: %w", staticResult.err)
 	}
 
-	dynamic, err := fetchDynamic(venue)
-	if err != nil {
-		return model.Venue{}, err
+	if dynamicResult.err != nil {
+		return model.Venue{}, fmt.Errorf("dynamic endpoint fetch failed: %w", dynamicResult.err)
 	}
 
 	return model.Venue{
-		Location:      static.Venue.Location,
-		DeliverySpecs: dynamic.Venue.DeliverySpecs,
+		Location:      staticResult.venue.Venue.Location,
+		DeliverySpecs: dynamicResult.venue.Venue.DeliverySpecs,
 	}, nil
 }
 
