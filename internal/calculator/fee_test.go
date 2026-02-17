@@ -72,7 +72,7 @@ func TestTotalFee_Success(t *testing.T) {
 func TestTotalFee_OutOfRange(t *testing.T) {
 	venue := createVenue()
 	userCoords := model.Location{
-		Coordinate: []float64{60.0, 25.0},
+		Coordinate: []float64{60.0, 200.0},
 	}
 
 	_, err := TotalFee(300, &userCoords, &venue)
