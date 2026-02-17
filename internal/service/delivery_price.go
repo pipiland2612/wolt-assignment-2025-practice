@@ -7,15 +7,19 @@ import (
 	"golang-api-practice/internal/model"
 )
 
-type Service struct {
+type service struct {
 	client *client.ApiClient
 }
 
-func NewService(client *client.ApiClient) *Service {
-	return &Service{client: client}
+type Service interface {
+	CalculateTotalFee(ctx context.Context, req *model.Request) (*model.Response, error)
 }
 
-func (s *Service) CalculateTotalFee(ctx context.Context, req *model.Request) (*model.Response, error) {
+func NewService(client *client.ApiClient) Service {
+	return &service{client: client}
+}
+
+func (s *service) CalculateTotalFee(ctx context.Context, req *model.Request) (*model.Response, error) {
 	venue, err := s.client.FetchApi(ctx, req.VenueSlug)
 	if err != nil {
 		return &model.Response{}, err
