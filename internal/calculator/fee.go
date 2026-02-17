@@ -7,11 +7,11 @@ import (
 	"math"
 )
 
-func TotalFee(cartValue int, venue model.VenueDynamic) (float64, error) {
+func TotalFee(cartValue int, userCoords model.Coordinates, venue model.VenueDynamic) (float64, error) {
 	smallOrderSurcharge := calcSmallOrderSurcharge(float64(cartValue), venue.OrderMin)
 	smallOrderSurcharge = math.Max(smallOrderSurcharge, 0)
 
-	distance := calcDistance(model.Coordinates{}, venue.Coords)
+	distance := calcDistance(userCoords, venue.Coords)
 	deliveryFee, err := calcDeliveryFee(distance, venue)
 	if err != nil {
 		return 0, fmt.Errorf("error calculating delivery fee: %w", err)
