@@ -3,7 +3,7 @@ package model
 type Request struct {
 	VenueSlug  string `json:"venue_slug"`
 	CartValue  int    `json:"cart_value"`
-	UserCoords Coordinates
+	UserCoords Location
 }
 
 type Response struct {

@@ -7,11 +7,11 @@ import (
 	"math"
 )
 
-func TotalFee(cartValue int, userCoords model.Coordinates, venue model.VenueDynamic) (float64, error) {
-	smallOrderSurcharge := calcSmallOrderSurcharge(float64(cartValue), venue.OrderMin)
+func TotalFee(cartValue int, userCoord *model.Location, venue *model.Venue) (float64, error) {
+	smallOrderSurcharge := calcSmallOrderSurcharge(float64(cartValue), venue.DeliverySpecs.OrderMin)
 	smallOrderSurcharge = math.Max(smallOrderSurcharge, 0)
 
-	distance := calcDistance(userCoords, venue.Coords)
+	distance := calcDistance(userCoord, venue.Location)
 	deliveryFee, err := calcDeliveryFee(distance, venue)
 	if err != nil {
 		return 0, fmt.Errorf("error calculating delivery fee: %w", err)
@@ -23,21 +23,22 @@ func calcSmallOrderSurcharge(cartValue, orderMin float64) float64 {
 	return cartValue - orderMin
 }
 
-func calcDeliveryFee(d float64, venue model.VenueDynamic) (float64, error) {
-	for _, r := range venue.DistanceRanges {
+func calcDeliveryFee(d float64, venue *model.Venue) (float64, error) {
+	for _, r := range venue.DeliverySpecs.DeliveryPricing.DistanceRanges {
 
-		dMin := float64(r.Min)
-		dMax := float64(r.Max)
+		dMin := r.Min
+		dMax := r.Max
+		basePrice := venue.DeliverySpecs.DeliveryPricing.BasePrice
 
 		if r.Max == 0 {
 			if d < dMin {
-				return calcDistanceRangeFee(float64(r.A), float64(r.B), venue.BasePrice, d), nil
+				return calcDistanceRangeFee(r.A, r.B, basePrice, d), nil
 			}
 			continue
 		}
 
 		if d >= dMin && d < dMax {
-			return calcDistanceRangeFee(float64(r.A), float64(r.B), venue.BasePrice, d), nil
+			return calcDistanceRangeFee(r.A, r.B, basePrice, d), nil
 		}
 	}
 

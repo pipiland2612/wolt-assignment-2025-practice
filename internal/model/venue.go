@@ -1,24 +1,31 @@
 package model
 
-type Coordinates struct {
-	Latitude  float64 `json:"lat"`
-	Longitude float64 `json:"lon"`
-}
-
-type DistanceRange struct {
-	Min int `json:"min"`
-	Max int `json:"max"`
-	A   int `json:"a"`
-	B   int `json:"b"`
+type VenueResponse struct {
+	Venue Venue `json:"venue_raw"`
 }
 
 type Venue struct {
-	Coords Coordinates `json:"coordinates"`
+	Location      *Location      `json:"location,omitempty"`
+	DeliverySpecs *DeliverySpecs `json:"delivery_specs,omitempty"`
 }
 
-type VenueDynamic struct {
-	Venue
+type Location struct {
+	Coordinate []float64 `json:"coordinates"`
+}
+
+type DeliverySpecs struct {
+	OrderMin        float64          `json:"order_minimum_no_surcharge"`
+	DeliveryPricing *DeliveryPricing `json:"delivery_pricing,omitempty"`
+}
+
+type DeliveryPricing struct {
 	BasePrice      float64         `json:"base_price"`
-	OrderMin       float64         `json:"order_minimum_no_surcharge"`
 	DistanceRanges []DistanceRange `json:"distance_ranges"`
+}
+
+type DistanceRange struct {
+	Min float64 `json:"min"`
+	Max float64 `json:"max"`
+	A   float64 `json:"a"`
+	B   float64 `json:"b"`
 }
