@@ -39,7 +39,7 @@ func TestTotalFee_Success(t *testing.T) {
 
 	tests := []struct {
 		name      string
-		cartValue int
+		cartValue float64
 		expected  float64
 	}{
 		{

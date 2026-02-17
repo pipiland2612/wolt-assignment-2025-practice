@@ -7,16 +7,24 @@ import (
 	"math"
 )
 
-func TotalFee(cartValue int, userCoord *model.Location, venue *model.Venue) (float64, error) {
-	smallOrderSurcharge := calcSmallOrderSurcharge(float64(cartValue), venue.DeliverySpecs.OrderMin)
-	smallOrderSurcharge = math.Max(smallOrderSurcharge, 0)
+func TotalFee(cartValue float64, userCoord *model.Location, venue *model.Venue) (*model.Response, error) {
+	smallOrderSurcharge := calcSmallOrderSurcharge(cartValue, venue.DeliverySpecs.OrderMin)
+	smallOrderSurcharge = math.Max(smallOrderSurcharge, 0.0)
 
 	distance := calcDistance(userCoord, venue.Location)
 	deliveryFee, err := calcDeliveryFee(distance, venue)
 	if err != nil {
-		return 0, fmt.Errorf("error calculating delivery fee: %w", err)
+		return &model.Response{}, fmt.Errorf("error calculating delivery fee: %w", err)
 	}
-	return deliveryFee + smallOrderSurcharge + float64(cartValue), nil
+	return &model.Response{
+		TotalPrice:     smallOrderSurcharge + deliveryFee + cartValue,
+		OrderSurcharge: smallOrderSurcharge,
+		CartValue:      cartValue,
+		Delivery: model.Delivery{
+			Fee:      deliveryFee,
+			Distance: distance,
+		},
+	}, nil
 }
 
 func calcSmallOrderSurcharge(cartValue, orderMin float64) float64 {
@@ -25,19 +33,16 @@ func calcSmallOrderSurcharge(cartValue, orderMin float64) float64 {
 
 func calcDeliveryFee(d float64, venue *model.Venue) (float64, error) {
 	for _, r := range venue.DeliverySpecs.DeliveryPricing.DistanceRanges {
-
-		dMin := r.Min
-		dMax := r.Max
 		basePrice := venue.DeliverySpecs.DeliveryPricing.BasePrice
 
 		if r.Max == 0 {
-			if d < dMin {
+			if d < r.Min {
 				return calcDistanceRangeFee(r.A, r.B, basePrice, d), nil
 			}
 			continue
 		}
 
-		if d >= dMin && d < dMax {
+		if d >= r.Min && d < r.Max {
 			return calcDistanceRangeFee(r.A, r.B, basePrice, d), nil
 		}
 	}
