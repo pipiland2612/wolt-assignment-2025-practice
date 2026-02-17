@@ -8,19 +8,19 @@ import (
 )
 
 type service struct {
-	client *client.ApiClient
+	client client.VenueClient
 }
 
 type Service interface {
 	CalculateTotalFee(ctx context.Context, req *model.Request) (*model.Response, error)
 }
 
-func NewService(client *client.ApiClient) Service {
+func NewService(client client.VenueClient) Service {
 	return &service{client: client}
 }
 
 func (s *service) CalculateTotalFee(ctx context.Context, req *model.Request) (*model.Response, error) {
-	venue, err := s.client.FetchApi(ctx, req.VenueSlug)
+	venue, err := s.client.GetVenueData(ctx, req.VenueSlug)
 	if err != nil {
 		return &model.Response{}, err
 	}

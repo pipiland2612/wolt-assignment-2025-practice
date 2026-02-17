@@ -10,8 +10,11 @@ import (
 
 const _apiPrefix = "https://consumer-api.development.dev.woltapi.com/home-assignment-api/v1/venues/"
 
-type ApiClient struct {
-	Client *http.Client
+type VenueClient interface {
+	GetVenueData(ctx context.Context, venue string) (*model.Venue, error)
+}
+type apiClient struct {
+	client *http.Client
 }
 
 type result struct {
@@ -19,13 +22,13 @@ type result struct {
 	err   error
 }
 
-func NewClient(client *http.Client) *ApiClient {
-	return &ApiClient{
-		Client: client,
+func NewClient(client *http.Client) VenueClient {
+	return &apiClient{
+		client: client,
 	}
 }
 
-func (a *ApiClient) FetchApi(ctx context.Context, venue string) (*model.Venue, error) {
+func (a *apiClient) GetVenueData(ctx context.Context, venue string) (*model.Venue, error) {
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 
@@ -69,23 +72,23 @@ func fetchHelper(ctx context.Context, resultChan chan<- result, venue string, fn
 	}
 }
 
-func (a *ApiClient) fetchDynamic(ctx context.Context, venue string) (*model.Venue, error) {
+func (a *apiClient) fetchDynamic(ctx context.Context, venue string) (*model.Venue, error) {
 	url := fmt.Sprintf("%v%v/dynamic", _apiPrefix, venue)
 	return a.fetchAndParseURL(ctx, url)
 }
 
-func (a *ApiClient) fetchStatic(ctx context.Context, venue string) (*model.Venue, error) {
+func (a *apiClient) fetchStatic(ctx context.Context, venue string) (*model.Venue, error) {
 	url := fmt.Sprintf("%v%v/static", _apiPrefix, venue)
 	return a.fetchAndParseURL(ctx, url)
 }
 
-func (a *ApiClient) fetchAndParseURL(ctx context.Context, url string) (*model.Venue, error) {
+func (a *apiClient) fetchAndParseURL(ctx context.Context, url string) (*model.Venue, error) {
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 	if err != nil {
 		return &model.Venue{}, err
 	}
 
-	resp, err := a.Client.Do(req)
+	resp, err := a.client.Do(req)
 	if err != nil {
 		if ctx.Err() != nil {
 			return &model.Venue{}, ctx.Err()

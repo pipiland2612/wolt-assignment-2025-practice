@@ -8,7 +8,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestFetchApiReal(t *testing.T) {
+func TestGetVenueDataReal(t *testing.T) {
 	venues := []string{
 		"home-assignment-venue-helsinki",
 		"home-assignment-venue-stockholm",
@@ -20,7 +20,7 @@ func TestFetchApiReal(t *testing.T) {
 
 	for _, v := range venues {
 		t.Run(v, func(t *testing.T) {
-			res, err := client.FetchApi(context.Background(), v)
+			res, err := client.GetVenueData(context.Background(), v)
 			require.NoError(t, err, "fetch failed for %s", v)
 
 			// check location
