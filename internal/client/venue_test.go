@@ -1,6 +1,7 @@
 package client
 
 import (
+	"context"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -16,18 +17,18 @@ func TestFetchApiReal(t *testing.T) {
 
 	for _, v := range venues {
 		t.Run(v, func(t *testing.T) {
-			result, err := FetchApi(v)
+			res, err := FetchApi(context.Background(), v)
 			require.NoError(t, err, "fetch failed for %s", v)
 
 			// check location
-			require.NotNil(t, result.Location, "venue %s: location is nil", v)
-			require.NotNil(t, result.Location.Coordinate, "venue %s: coordinates are empty", v)
+			require.NotNil(t, res.Location, "venue %s: location is nil", v)
+			require.NotNil(t, res.Location.Coordinate, "venue %s: coordinates are empty", v)
 
 			// check delivery specs
-			require.NotNil(t, result.DeliverySpecs, "venue %s: delivery specs is nil", v)
+			require.NotNil(t, res.DeliverySpecs, "venue %s: delivery specs is nil", v)
 
-			if result.DeliverySpecs.DeliveryPricing != nil {
-				require.NotEmpty(t, result.DeliverySpecs.DeliveryPricing.DistanceRanges,
+			if res.DeliverySpecs.DeliveryPricing != nil {
+				require.NotEmpty(t, res.DeliverySpecs.DeliveryPricing.DistanceRanges,
 					"venue %s: delivery pricing distance ranges empty", v)
 			}
 		})

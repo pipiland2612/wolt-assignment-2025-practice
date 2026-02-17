@@ -1,6 +1,7 @@
 package client
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"golang-api-practice/internal/model"
@@ -10,64 +11,83 @@ import (
 const _apiPrefix = "https://consumer-api.development.dev.woltapi.com/home-assignment-api/v1/venues/"
 
 type result struct {
-	venue model.VenueResponse
+	venue model.Venue
 	err   error
 }
 
-func FetchApi(venue string) (model.Venue, error) {
-	staticChan := make(chan result)
-	dynamicChan := make(chan result)
+func FetchApi(ctx context.Context, venue string) (model.Venue, error) {
+	ctx, cancel := context.WithCancel(ctx)
+	defer cancel()
 
-	go func() {
-		res, err := fetchStatic(venue)
-		staticChan <- result{res, err}
-	}()
+	staticChan := make(chan result, 1)
+	dynamicChan := make(chan result, 1)
 
-	go func() {
-		res, err := fetchDynamic(venue)
-		dynamicChan <- result{res, err}
-	}()
+	go fetchHelper(ctx, staticChan, venue, fetchStatic)
+	go fetchHelper(ctx, dynamicChan, venue, fetchDynamic)
 
-	staticResult := <-staticChan
-	dynamicResult := <-dynamicChan
+	var static, dynamic result
 
-	if staticResult.err != nil {
-		return model.Venue{}, fmt.Errorf("static endpoint fetch failed: %w", staticResult.err)
-	}
-
-	if dynamicResult.err != nil {
-		return model.Venue{}, fmt.Errorf("dynamic endpoint fetch failed: %w", dynamicResult.err)
+	for i := 0; i < 2; i++ {
+		select {
+		case s := <-staticChan:
+			static = s
+			if s.err != nil {
+				return model.Venue{}, fmt.Errorf("static endpoint fetch failed: %w", s.err)
+			}
+		case d := <-dynamicChan:
+			dynamic = d
+			if d.err != nil {
+				return model.Venue{}, fmt.Errorf("dynamic endpoint fetch failed: %w", d.err)
+			}
+		case <-ctx.Done():
+			return model.Venue{}, ctx.Err()
+		}
 	}
 
 	return model.Venue{
-		Location:      staticResult.venue.Venue.Location,
-		DeliverySpecs: dynamicResult.venue.Venue.DeliverySpecs,
+		Location:      static.venue.Location,
+		DeliverySpecs: dynamic.venue.DeliverySpecs,
 	}, nil
 }
 
-func fetchDynamic(venue string) (model.VenueResponse, error) {
+func fetchHelper(ctx context.Context, resultChan chan<- result, venue string, fn func(ctx context.Context, venue string) (model.Venue, error)) {
+	res, err := fn(ctx, venue)
+	select {
+	case resultChan <- result{res, err}:
+	case <-ctx.Done():
+		return
+	}
+}
+
+func fetchDynamic(ctx context.Context, venue string) (model.Venue, error) {
 	url := fmt.Sprintf("%v%v/dynamic", _apiPrefix, venue)
-	return fetchAndParseURL(url)
+	return fetchAndParseURL(ctx, url)
 }
 
-func fetchStatic(venue string) (model.VenueResponse, error) {
+func fetchStatic(ctx context.Context, venue string) (model.Venue, error) {
 	url := fmt.Sprintf("%v%v/static", _apiPrefix, venue)
-	return fetchAndParseURL(url)
+	return fetchAndParseURL(ctx, url)
 }
 
-func fetchAndParseURL(url string) (model.VenueResponse, error) {
-	client := &http.Client{}
-
-	resp, err := client.Get(url)
+func fetchAndParseURL(ctx context.Context, url string) (model.Venue, error) {
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 	if err != nil {
-		return model.VenueResponse{}, err
+		return model.Venue{}, err
+	}
+
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		if ctx.Err() != nil {
+			return model.Venue{}, ctx.Err()
+		}
+		return model.Venue{}, err
 	}
 	defer resp.Body.Close()
 
-	var result model.VenueResponse
-	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
-		return model.VenueResponse{}, err
+	var res model.VenueResponse
+	if err := json.NewDecoder(resp.Body).Decode(&res); err != nil {
+		return model.Venue{}, err
 	}
 
-	return result, nil
+	return res.Venue, nil
 }
