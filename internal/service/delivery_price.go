@@ -7,8 +7,16 @@ import (
 	"golang-api-practice/internal/model"
 )
 
-func CalculateTotalFee(ctx context.Context, req *model.Request) (*model.Response, error) {
-	venue, err := client.FetchApi(ctx, req.VenueSlug)
+type Service struct {
+	client *client.ApiClient
+}
+
+func NewService(client *client.ApiClient) *Service {
+	return &Service{client: client}
+}
+
+func (s *Service) CalculateTotalFee(ctx context.Context, req *model.Request) (*model.Response, error) {
+	venue, err := s.client.FetchApi(ctx, req.VenueSlug)
 	if err != nil {
 		return &model.Response{}, err
 	}

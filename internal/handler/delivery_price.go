@@ -17,7 +17,17 @@ const (
 	_userLon   = "user_lon"
 )
 
-func DeliveryPrice(w http.ResponseWriter, r *http.Request) {
+type Handler struct {
+	service *service.Service
+}
+
+func NewHandler(service *service.Service) *Handler {
+	return &Handler{
+		service: service,
+	}
+}
+
+func (h *Handler) DeliveryPrice(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	req, err := parseRequest(r)
 	if err != nil {
@@ -25,7 +35,7 @@ func DeliveryPrice(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	resp, err := service.CalculateTotalFee(ctx, req)
+	resp, err := h.service.CalculateTotalFee(ctx, req)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return

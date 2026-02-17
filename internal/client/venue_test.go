@@ -2,6 +2,7 @@ package client
 
 import (
 	"context"
+	"net/http"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -15,9 +16,11 @@ func TestFetchApiReal(t *testing.T) {
 		"home-assignment-venue-tokyo",
 	}
 
+	client := NewClient(&http.Client{})
+
 	for _, v := range venues {
 		t.Run(v, func(t *testing.T) {
-			res, err := FetchApi(context.Background(), v)
+			res, err := client.FetchApi(context.Background(), v)
 			require.NoError(t, err, "fetch failed for %s", v)
 
 			// check location
