@@ -84,6 +84,10 @@ func fetchAndParseURL(ctx context.Context, url string) (model.Venue, error) {
 	}
 	defer resp.Body.Close()
 
+	if resp.StatusCode != http.StatusOK {
+		return model.Venue{}, fmt.Errorf("unexpected status code: %d", resp.StatusCode)
+	}
+
 	var res model.VenueResponse
 	if err := json.NewDecoder(resp.Body).Decode(&res); err != nil {
 		return model.Venue{}, err
