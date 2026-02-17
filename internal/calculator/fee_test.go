@@ -64,7 +64,7 @@ func TestTotalFee_Success(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			total, err := TotalFee(tt.cartValue, &userCoords, &venue)
 			require.NoError(t, err)
-			require.Equal(t, tt.expected, total)
+			require.Equal(t, tt.expected, total.TotalPrice)
 		})
 	}
 }
