@@ -1,1 +1,34 @@
 package calculator
+
+import (
+	"golang-api-practice/internal/model"
+	"math"
+)
+
+const EarthRadiusM = 6371000.0
+
+// calcDistance use Haversine formula to calculate straight line distance between user and venue
+func calcDistance(userCoords, venueCoords model.Coordinates) float64 {
+	userLat := userCoords.Latitude
+	userLon := userCoords.Longitude
+
+	venueLat := venueCoords.Latitude
+	venueLon := venueCoords.Longitude
+
+	userLatRad := toRadian(userLat)
+	venueLatRad := toRadian(venueLat)
+	deltaLat := toRadian(venueLat - userLat)
+	deltaLon := toRadian(venueLon - userLon)
+
+	a := math.Sin(deltaLat/2)*math.Sin(deltaLat/2) +
+		math.Cos(userLatRad)*math.Cos(venueLatRad)*
+			math.Sin(deltaLon/2)*math.Sin(deltaLon/2)
+
+	c := 2 * math.Atan2(math.Sqrt(a), math.Sqrt(1-a))
+
+	return EarthRadiusM * c
+}
+
+func toRadian(value float64) float64 {
+	return value * math.Pi / 180.0
+}

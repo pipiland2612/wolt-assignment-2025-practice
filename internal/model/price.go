@@ -1,10 +1,9 @@
 package model
 
 type Request struct {
-	VenueSlug string  `json:"venue_slug"`
-	CartValue int     `json:"cart_value"`
-	UserLat   float64 `json:"user_lat"`
-	UserLon   float64 `json:"user_lon"`
+	VenueSlug  string `json:"venue_slug"`
+	CartValue  int    `json:"cart_value"`
+	UserCoords Coordinates
 }
 
 type Response struct {

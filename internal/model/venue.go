@@ -18,7 +18,7 @@ type Venue struct {
 
 type VenueDynamic struct {
 	Venue
-	BasePrice      float64       `json:"base_price"`
-	OrderMin       float64       `json:"order_minimum_no_surcharge"`
-	DistanceRanges DistanceRange `json:"distance_ranges"`
+	BasePrice      float64         `json:"base_price"`
+	OrderMin       float64         `json:"order_minimum_no_surcharge"`
+	DistanceRanges []DistanceRange `json:"distance_ranges"`
 }
