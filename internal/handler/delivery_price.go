@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"golang-api-practice/internal/model"
 	"golang-api-practice/internal/service"
+	"log"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -37,6 +38,7 @@ func (h *Handler) DeliveryPrice(w http.ResponseWriter, r *http.Request) {
 
 	resp, err := h.service.CalculateTotalFee(ctx, req)
 	if err != nil {
+		log.Printf("CalculateTotalFee error: %v\n", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -73,7 +75,7 @@ func parseRequest(r *http.Request) (*model.Request, error) {
 		VenueSlug: venue,
 		CartValue: cartValue,
 		UserCoords: model.Location{
-			Coordinate: []float64{lat, lon},
+			Coordinate: []float64{lon, lat},
 		},
 	}, nil
 }

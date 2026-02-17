@@ -9,11 +9,11 @@ const EarthRadiusM = 6371000.0
 
 // calcDistance use Haversine formula to calculate straight line distance between user and venue
 func calcDistance(userCoords, venueCoords *model.Location) float64 {
-	userLat := userCoords.Coordinate[0]
-	userLon := userCoords.Coordinate[1]
+	userLon := userCoords.Coordinate[0]
+	userLat := userCoords.Coordinate[1]
 
-	venueLat := venueCoords.Coordinate[0]
-	venueLon := venueCoords.Coordinate[1]
+	venueLon := venueCoords.Coordinate[0]
+	venueLat := venueCoords.Coordinate[1]
 
 	userLatRad := toRadian(userLat)
 	venueLatRad := toRadian(venueLat)
@@ -26,7 +26,7 @@ func calcDistance(userCoords, venueCoords *model.Location) float64 {
 
 	c := 2 * math.Atan2(math.Sqrt(a), math.Sqrt(1-a))
 
-	return EarthRadiusM * c
+	return math.Round(EarthRadiusM * c)
 }
 
 func toRadian(value float64) float64 {

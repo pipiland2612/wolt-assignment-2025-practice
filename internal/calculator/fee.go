@@ -47,7 +47,7 @@ func calcDeliveryFee(d float64, venue *model.Venue) (float64, error) {
 		}
 	}
 
-	return 0, errors.New("venue distance is out of range")
+	return 0, errors.New(fmt.Sprintf("venue distance is out of range, d: %v", d))
 }
 
 func calcDistanceRangeFee(a, b, basePrice, d float64) float64 {
