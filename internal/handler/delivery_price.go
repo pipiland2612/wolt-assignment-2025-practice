@@ -3,12 +3,14 @@ package handler
 import (
 	"encoding/json"
 	"fmt"
+	"golang-api-practice/internal/metrics"
 	"golang-api-practice/internal/model"
 	"golang-api-practice/internal/service"
 	"log"
 	"net/http"
 	"net/url"
 	"strconv"
+	"time"
 )
 
 const (
@@ -29,9 +31,13 @@ func NewHandler(service service.Service) *Handler {
 }
 
 func (h *Handler) DeliveryPrice(w http.ResponseWriter, r *http.Request) {
+	start := time.Now()
 	ctx := r.Context()
+
 	req, err := parseRequest(r)
 	if err != nil {
+		metrics.RequestsTotal.WithLabelValues("400").Inc()
+		metrics.RequestDuration.WithLabelValues("400").Observe(time.Since(start).Seconds())
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
@@ -39,10 +45,14 @@ func (h *Handler) DeliveryPrice(w http.ResponseWriter, r *http.Request) {
 	resp, err := h.service.CalculateTotalFee(ctx, req)
 	if err != nil {
 		log.Printf("CalculateTotalFee error: %v\n", err)
+		metrics.RequestsTotal.WithLabelValues("500").Inc()
+		metrics.RequestDuration.WithLabelValues("500").Observe(time.Since(start).Seconds())
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
+	metrics.RequestsTotal.WithLabelValues("200").Inc()
+	metrics.RequestDuration.WithLabelValues("200").Observe(time.Since(start).Seconds())
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(resp)

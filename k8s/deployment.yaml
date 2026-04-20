@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dopc
+  namespace: default
+  labels:
+    app: dopc
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: dopc
+  template:
+    metadata:
+      labels:
+        app: dopc
+    spec:
+      containers:
+        - name: dopc
+          image: dopc:latest
+          imagePullPolicy: Never   # use local minikube image, don't pull from registry
+          ports:
+            - containerPort: 8000
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: dopc
+  namespace: default
+  labels:
+    app: dopc
+spec:
+  selector:
+    app: dopc
+  ports:
+    - name: http
+      port: 8000
+      targetPort: 8000
+  type: ClusterIP

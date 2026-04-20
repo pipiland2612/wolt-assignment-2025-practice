@@ -1,0 +1,18 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: dopc
+  namespace: monitoring      # must be in the same namespace as prom-stack
+  labels:
+    release: prom-stack      # must match the Helm release name so the operator picks it up
+spec:
+  namespaceSelector:
+    matchNames:
+      - default              # the namespace where your dopc Service lives
+  selector:
+    matchLabels:
+      app: dopc              # must match the label on your Service
+  endpoints:
+    - port: http             # the named port on your Service (we'll add this below)
+      path: /metrics
+      interval: 15s

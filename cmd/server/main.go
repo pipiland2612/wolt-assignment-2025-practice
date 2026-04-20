@@ -8,10 +8,14 @@ import (
 
 	"golang-api-practice/internal/client"
 	"golang-api-practice/internal/handler"
+	"golang-api-practice/internal/metrics"
 	"golang-api-practice/internal/service"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
 func main() {
+	metrics.Register()
+
 	httpClient := &http.Client{
 		Timeout: 5 * time.Second,
 	}
@@ -22,6 +26,7 @@ func main() {
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("/api/v1/delivery-order-price", deliveryHandler.DeliveryPrice)
+	mux.Handle("/metrics", promhttp.Handler())
 
 	server := &http.Server{
 		Addr:         ":8000",
